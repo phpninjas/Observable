@@ -32,12 +32,10 @@ class MyClass {
   use Notifier;
   
   public function doSomething(){
-    $this->setChanged();
     $this->notifyObservers("did something");
   }
   
   public function doSomeEvent(){
-    $this->setChanged();
     $this->notifyObservers(new MyEvent(1,2));
   }
 }
