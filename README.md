@@ -87,7 +87,7 @@ Dragons
 =======
 
 Recursive events are bad! Don't do it.
-i.e. don't have an observer send an event to the same event to the same producer
+i.e. don't have an observer send the same event it just received to the same producer
 
 ```php
 // DO NOT DO THIS!
