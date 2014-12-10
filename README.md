@@ -74,14 +74,14 @@ class MyEvent {
 
 $newClass = new MyClass();
 $newClass->addObserver(function(MyEvent $e){
-  
+  // i will ONLY get MyEvent objects, everything else will be ignored for me! YAY!
 });
 
 ```
 
 Bear in mind non-typesafe observers will receive EVERYTHING, 
 If you add an observer with no typed parameter definition (i.e. the argument is not of a class Type) it will get
-all the event messages that get passed through.
+ALL event messages.
 
 Dragons
 =======
