@@ -1,5 +1,5 @@
-Tell me about it
-================
+I got an event!
+===============
 
 Most modern php frameworks are migrating toward event and message based paradigms.
 This library goes some way to solving the problem of event object contracts between
@@ -8,10 +8,12 @@ producers and subscribers.
 Installation
 ============
 
-Composer!
-
+Get Composer
+```bash
+curl -sS https://getcomposer.org/installer | php
+php composer.phar install
+```
 composer.json
-
 ```php
 {
   require: {
