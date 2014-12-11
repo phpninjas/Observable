@@ -6,9 +6,9 @@ trait Notifier
 {
 
     /**
-     * @var \SplObjectStorage
+     * @var array
      */
-    private $observers;
+    private $observers = [];
 
     /**
      * @var bool
@@ -16,26 +16,26 @@ trait Notifier
     private $locked = false;
 
     /**
-     * @var \SplQueue
+     * @var array
      */
-    private $eventQueue;
+    private $eventQueue = [];
 
     /**
      * @param \Closure|array|callable $observer
      */
     public function addObserver(callable $observer)
     {
-        $functor = $this->reflect($observer);
-        if ($functor->getNumberOfParameters() != 1) throw new \InvalidArgumentException("Observers must ONLY accept 1 parameter.");
-        $this->getObservers()->attach(is_array($observer)?new InvokableArray($observer):$observer, $functor);
+        $this->observers[] = [is_array($observer)?new InvokableArray($observer):$observer, $this->determineType($observer)];
     }
 
     /**
-     * @param \Closure|array|callable $callback
+     * @param \Closure|array|callable $observer
      */
-    public function removeObserver(callable $callback)
+    public function removeObserver(callable $observer)
     {
-        $this->getObservers()->detach($callback);
+        if(false !== ($idx = array_search([$observer, $this->determineType($observer)],$this->observers))){
+            unset($this->observers[$idx]);
+        }
     }
 
     /**
@@ -46,21 +46,17 @@ trait Notifier
         $this->queueEvent($event);
         if(!$this->locked()){
             $this->lock();
-            while(!$this->getEventQueue()->isEmpty()){
-                $event = $this->getEventQueue()->dequeue();
-                foreach ($this->getObservers() as $observer) {
-                    $reflector = $this->getObservers()[$observer];
-                    foreach ($reflector->getParameters() as $p) {
-                        $parameterType = $p->getClass();
-                        if ($parameterType) {
-                            $type = $p->getClass()->getName();
-                            if ($event instanceof $type) {
-                                call_user_func($observer, $event);
-                            }
-                        } else {
-                            // no type
-                            call_user_func($observer, $event);
+            while($event = $this->dequeueEvent()){
+                $observers = $this->observers;
+                foreach ($observers as $observer) {
+                    $type = $observer[1];
+                    if ($type) {
+                        if ($event instanceof $type) {
+                            call_user_func($observer[0], $event);
                         }
+                    } else {
+                        // no type
+                        call_user_func($observer[0], $event);
                     }
                 }
             }
@@ -92,41 +88,51 @@ trait Notifier
     }
 
     /**
-     * @return \SplObjectStorage
+     * Provide a lock around the notifier loop
      */
-    private function getObservers()
-    {
-        if (!$this->observers)
-            $this->observers = new \SplObjectStorage();
-        return $this->observers;
-    }
-
-    /**
-     * @param mixed $event
-     */
-    private function queueEvent($event){
-        $this->getEventQueue()->enqueue($event);
-    }
-
-    /**
-     * @return \SplQueue
-     */
-    private function getEventQueue(){
-        if(!$this->eventQueue)
-            $this->eventQueue = new \SplQueue();
-        return $this->eventQueue;
-    }
-
     private function lock(){
         $this->locked = true;
     }
 
+    /**
+     * Unlock the notifier loop
+     */
     public function unlock(){
         $this->locked = false;
     }
 
+    /**
+     *
+     * @return bool
+     */
     private function locked(){
         return $this->locked;
+    }
+
+    /**
+     * @param $event
+     */
+    private function queueEvent($event){
+        $this->eventQueue[] = $event;
+    }
+
+    /**
+     * @return mixed
+     */
+    private function dequeueEvent(){
+        return array_shift($this->eventQueue);
+    }
+
+    /**
+     * @param callable $callable
+     * @return null|string
+     * @throws \InvalidArgumentException
+     */
+    private function determineType(callable $callable){
+        $reflector = $this->reflect($callable);
+        if ($reflector->getNumberOfParameters() != 1) throw new \InvalidArgumentException("Observers must ONLY accept 1 parameter.");
+        $type = $reflector->getParameters()[0]->getClass();
+        return $type?$type->getName():null;
     }
 
 }
