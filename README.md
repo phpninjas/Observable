@@ -98,3 +98,11 @@ $observable->addObserver(function(\MyEvent)use($observable){
 $observable->doSomeEvent();
 
 ```
+
+
+Performance
+===========
+
+The performance is roughly 50% faster than Symfony Dispatcher.
+
+In a 2million event based test, Symfony event dispatcher took 37 seconds, while Notifier took 22 seconds (OSX 10.9.5, 2.3Ghz Intel I7, 16GB mem PHP 5.4.30).
