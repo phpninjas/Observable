@@ -14,7 +14,7 @@ curl -sS https://getcomposer.org/installer | php
 php composer.phar install
 ```
 composer.json
-```php
+```javascript
 {
   require: {
     "phpninjas/observable": "dev-master"
