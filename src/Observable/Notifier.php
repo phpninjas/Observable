@@ -130,8 +130,9 @@ trait Notifier
      */
     private function determineType(callable $callable){
         $reflector = $this->reflect($callable);
-        if ($reflector->getNumberOfParameters() != 1) throw new \InvalidArgumentException("Observers must ONLY accept 1 parameter.");
-        $type = $reflector->getParameters()[0]->getClass();
+        if ($reflector->getNumberOfParameters() > 1) throw new \InvalidArgumentException("Observers must ONLY accept 1 parameter.");
+        $reflectionParameters = $reflector->getParameters();
+        $type = count($reflectionParameters)?$reflectionParameters[0]->getClass():null;
         return $type?$type->getName():null;
     }
 

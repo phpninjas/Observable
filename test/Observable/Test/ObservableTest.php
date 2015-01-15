@@ -114,6 +114,16 @@ class ObservableTest extends \PHPUnit_Framework_TestCase {
 
     }
 
+    public function testAllowsZeroArgumentsObservers(){
+        $func = function()use(&$happened){
+            $happened = true;
+        };
+        $this->addObserver($func);
+
+        $this->notifyObservers(1);
+        $this->assertThat($happened, $this->isTrue());
+    }
+
 
     public function verifyEvent($event){
         $this->assertThat(count($this->events), $this->equalTo(1));
